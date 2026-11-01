@@ -633,7 +633,7 @@ Timestamp View::snapped_time(int64_t sample) const
 	if (rate <= 0) return Timestamp(0);
 	Timestamp origin(0);
 	const auto logic = std::dynamic_pointer_cast<LogicSignal>(signal_under_mouse_cursor_);
-	if (logic && logic->get_logic_segment_to_paint())
+	if (logic->base()->type() == data::SignalBase::LogicChannel && logic->get_logic_segment_to_paint())
 		origin = logic->get_logic_segment_to_paint()->start_time();
 	return origin + Timestamp(sample) / rate;
 }
@@ -694,7 +694,7 @@ void View::set_idle_compression(bool enabled)
 	for (const auto& signal : signals_) {
 		if (!signal->enabled()) continue;
 		const auto logic = std::dynamic_pointer_cast<LogicSignal>(signal);
-		if (!logic) {
+		if (logic->base()->type() != data::SignalBase::LogicChannel) {
 			reject(tr("Idle compression requires digital traces only"));
 			return;
 		}
@@ -1309,7 +1309,7 @@ int64_t View::get_nearest_level_change(const QPoint &p)
 		if (rate <= 0) continue;
 		Timestamp origin(0);
 		const auto logic = std::dynamic_pointer_cast<LogicSignal>(e.signal);
-		if (logic && logic->get_logic_segment_to_paint())
+		if (logic->base()->type() == data::SignalBase::LogicChannel && logic->get_logic_segment_to_paint())
 			origin = logic->get_logic_segment_to_paint()->start_time();
 		const int64_t sample_num = max(Timestamp(0),
 			(pixel_to_time(p.x()) - origin) * rate).convert_to<int64_t>();
